@@ -23,18 +23,47 @@ type AppConfig struct {
 	AppPort string
 }
 
-func (server *Server) Initialize(appConfig AppConfig) {
+// membuat struct
+type DBConfig struct {
+	DBHost     string
+	DBUser     string
+	DBPassword string
+	DBName     string
+	DBPort     string
+}
+
+// parameter initialize adalah value yang ada di function Run()
+func (server *Server) Initialize(appConfig AppConfig, dbConfig DBConfig) {
 	fmt.Println("Welcome To " + appConfig.AppName)
 	//make connection to database
+
+	server.initializeDb(dbConfig)
+	server.initializeRouter()
+}
+
+// supaya lebih rapi membuat method intialize db secara terpisah
+func (server *Server) initializeDb(dbConfig DBConfig) {
 	var err error
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta", "localhost", "postgres", "blimbeng38", "goshop_2023", "5432")
+
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta", dbConfig.DBHost, dbConfig.DBUser, dbConfig.DBPassword, dbConfig.DBName, dbConfig.DBPort)
 	server.DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	if err != nil{
+
+	if err != nil {
 		panic("Failed on connecting to the database server")
 	}
 
-	server.Router = mux.NewRouter()
-	server.initializeRouter()
+	//migration db dan menangkap data dari registry.go
+	//lakukan looping dulu untuk setiap models
+	for _, model := range RegisterModels() {
+		err = server.DB.Debug().AutoMigrate(model.Model)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	fmt.Println("Database migration successfully")
+
 }
 
 // untuk run servernya
@@ -57,6 +86,7 @@ func getEnv(key, fallback string) string {
 func Run() {
 	var server = Server{}
 	var appConfig = AppConfig{}
+	var dbConfig = DBConfig{}
 
 	err := godotenv.Load()
 
@@ -68,6 +98,13 @@ func Run() {
 	appConfig.AppEnv = getEnv("APP_ENV", "development")
 	appConfig.AppPort = getEnv("APP_PORT", "9000")
 
-	server.Initialize(appConfig)
+	//asign value dari struct yang telah dibuat
+	dbConfig.DBHost = getEnv("DB_HOST", "localhost")
+	dbConfig.DBUser = getEnv("DB_USER", "postgres")
+	dbConfig.DBPassword = getEnv("DB_PASSWORD", "blimbeng38")
+	dbConfig.DBName = getEnv("DB_NAME", "goshop_2023")
+	dbConfig.DBPort = getEnv("DB_PORT", "5432")
+
+	server.Initialize(appConfig, dbConfig)
 	server.Run(":" + appConfig.AppPort)
 }
