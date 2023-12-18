@@ -34,11 +34,16 @@ func (server *Server) Run(addr string) {
 	log.Fatal(http.ListenAndServe(addr, server.Router))
 }
 
-//validasi apakah ada file .env
-func getEnv(key, fallback string) string  {
-	if value, ok := os.LookupEnv(key)
-}
+// validasi apakah ada file .env
+func getEnv(key, fallback string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		// kalau ketemu key nya dia akan return valuenya
+		return value
+	}
 
+	// kalau tidak ditemukan keynya maka return fallbacknya
+	return fallback
+}
 
 func Run() {
 	var server = Server{}
@@ -50,9 +55,9 @@ func Run() {
 		log.Fatalf("Error Loading .env.example file")
 	}
 
-	appConfig.AppName = os.Getenv("APP_NAME")
-	appConfig.AppEnv = os.Getenv("APP_ENV")
-	appConfig.AppPort = os.Getenv("APP_PORT")
+	appConfig.AppName = getEnv("APP_NAME", "GoToko")
+	appConfig.AppEnv = getEnv("APP_ENV", "development")
+	appConfig.AppPort = getEnv("APP_PORT", "9000")
 
 	server.Initialize(appConfig)
 	server.Run(":" + appConfig.AppPort)
