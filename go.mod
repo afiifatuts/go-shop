@@ -3,8 +3,13 @@ module github.com/afiifatuts/go-shop
 go 1.20
 
 require (
+	github.com/bxcodec/faker v2.0.1+incompatible
+	github.com/bxcodec/faker/v4 v4.0.0-beta.3 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
+	github.com/google/uuid v1.5.0
 	github.com/gorilla/mux v1.8.1 // indirect
+	github.com/gosimple/slug v1.13.1 // indirect
+	github.com/gosimple/unidecode v1.0.1 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/jackc/pgx/v5 v5.4.3 // indirect
@@ -15,7 +20,7 @@ require (
 	github.com/unrolled/render v1.6.1 // indirect
 	golang.org/x/crypto v0.14.0 // indirect
 	golang.org/x/sys v0.13.0 // indirect
-	golang.org/x/text v0.13.0 // indirect
+	golang.org/x/text v0.14.0 // indirect
 	gorm.io/driver/postgres v1.5.4 // indirect
 	gorm.io/gorm v1.25.5 // indirect
 )
