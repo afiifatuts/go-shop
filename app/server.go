@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/afiifatuts/go-shop/app/database/seeders"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
@@ -39,6 +40,7 @@ func (server *Server) Initialize(appConfig AppConfig, dbConfig DBConfig) {
 
 	server.initializeDb(dbConfig)
 	server.initializeRouter()
+	seeders.DBSeed(server.DB)
 }
 
 // supaya lebih rapi membuat method intialize db secara terpisah

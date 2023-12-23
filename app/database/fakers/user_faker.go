@@ -10,7 +10,7 @@ import (
 )
 
 // membuat Faker Data
-func UserFaker() *models.User {
+func UserFaker(db *gorm.DB) *models.User {
 	return &models.User{
 		ID:            uuid.New().String(),
 		FirstName:     faker.FirstName(),
