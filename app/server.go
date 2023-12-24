@@ -1,6 +1,7 @@
 package app
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	"github.com/afiifatuts/go-shop/app/database/seeders"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
+	"github.com/urfave/cli/v2"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -38,9 +40,9 @@ func (server *Server) Initialize(appConfig AppConfig, dbConfig DBConfig) {
 	fmt.Println("Welcome To " + appConfig.AppName)
 	//make connection to database
 
-	server.initializeDb(dbConfig)
+	// server.initializeDb(dbConfig)-> tidak perlu karna kita harus tangkap argument dulu
 	server.initializeRouter()
-	seeders.DBSeed(server.DB)
+	// seeders.DBSeed(server.DB)
 }
 
 // supaya lebih rapi membuat method intialize db secara terpisah
@@ -54,10 +56,13 @@ func (server *Server) initializeDb(dbConfig DBConfig) {
 		panic("Failed on connecting to the database server")
 	}
 
+}
+
+func (server *Server) dbMigrate() {
 	//migration db dan menangkap data dari registry.go
 	//lakukan looping dulu untuk setiap models
 	for _, model := range RegisterModels() {
-		err = server.DB.Debug().AutoMigrate(model.Model)
+		err := server.DB.Debug().AutoMigrate(model.Model)
 
 		if err != nil {
 			log.Fatal(err)
@@ -65,6 +70,39 @@ func (server *Server) initializeDb(dbConfig DBConfig) {
 	}
 
 	fmt.Println("Database migration successfully")
+
+}
+
+// ini method untuk mendefinisikan command saat run go
+func (server *Server) initCommands(config AppConfig, db DBConfig) {
+	// panggil db nya
+	server.initializeDb(db)
+	cmdApp := cli.NewApp()
+	cmdApp.Commands = []*cli.Command{
+		//devinisikan commandnya + methodnya
+		{
+			Name: "db:migrate",
+			Action: func(ctx *cli.Context) error {
+				server.dbMigrate()
+				return nil
+			},
+		},
+		{
+			Name: "db:seed",
+			Action: func(ctx *cli.Context) error {
+				err := seeders.DBSeed(server.DB)
+				if err != nil {
+					log.Fatal(err)
+				}
+				return nil
+			},
+		},
+	}
+
+	err := cmdApp.Run(os.Args)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 }
 
@@ -107,6 +145,18 @@ func Run() {
 	dbConfig.DBName = getEnv("DB_NAME", "goshop_2023")
 	dbConfig.DBPort = getEnv("DB_PORT", "5432")
 
-	server.Initialize(appConfig, dbConfig)
-	server.Run(":" + appConfig.AppPort)
+	// server.Initialize(appConfig, dbConfig)
+	// server.Run(":" + appConfig.AppPort)
+
+	//menangkap argumen setelah go run main {db:migrate}
+	flag.Parse()
+	arg := flag.Arg(0)
+	if arg != "" {
+		server.initCommands(appConfig, dbConfig)
+	} else {
+		server.Initialize(appConfig, dbConfig)
+		server.Run(": " + appConfig.AppPort)
+		// log.Fatal(err)
+
+	}
 }
