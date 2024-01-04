@@ -6,7 +6,7 @@ import (
 	"github.com/unrolled/render"
 )
 
-func Home(w http.ResponseWriter, r *http.Request) {
+func (server *Server) Home(w http.ResponseWriter, r *http.Request) {
 	// fmt.Fprintf(w, "Welcome to Go Shop Home Page")
 	//render ke html
 	render := render.New(render.Options{Layout: "Layout"})
